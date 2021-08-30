@@ -51,7 +51,8 @@ class CollectionRef(DictModel):
 
 
 CollectionRef.Unsorted = CollectionRef({"$id": -1})
-CollectionRef.Trash = CollectionRef({"$id": -1})
+CollectionRef.Trash = CollectionRef({"$id": -99})
+CollectionRef.All = CollectionRef({"$id": 0})
 
 
 class UserRef(DictModel):
@@ -191,7 +192,19 @@ class RaindropType(enum.Enum):
     image = "image"
     video = "video"
     document = "document"
-    audio = "audi"
+    audio = "audio"
+
+
+class RaindropSortType(enum.Enum):
+    created = "created"
+    score = "score"
+    title = "title"
+    domain = "domain"
+
+
+class RaindropOrder(enum.Enum):
+    ascending = 1
+    descending = -1
 
 
 class Raindrop(DictModel):
@@ -354,6 +367,8 @@ class Raindrop(DictModel):
         word: Optional[str] = None,
         tag: Optional[str] = None,
         important: Optional[bool] = None,
+        sort_by: Optional[RaindropSortType] = RaindropSortType.created,
+        order: Optional[RaindropOrder] = RaindropOrder.descending,
     ) -> List[Raindrop]:
 
         args: List[Dict[str, Any]] = []
@@ -363,8 +378,9 @@ class Raindrop(DictModel):
             args.append({"key": "tag", "val": tag})
         if important is not None:
             args.append({"key": "important", "val": important})
+        sort = "-" if order == RaindropOrder.descending else "" + sort_by
 
-        params = {"search": json.dumps(args), "perpage": perpage, "page": page}
+        params = {"search": json.dumps(args), "perpage": perpage, "page": page, "sort": sort}
 
         URL = f"https://api.raindrop.io/rest/v1/raindrops/{collection.id}"
 
